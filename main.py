@@ -1,9 +1,10 @@
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher, Router
 import asyncio
 import betterlogging as bl
 import logging
 from aiogram.enums import ParseMode
-from core.handlers.basic import get_start
+from core.handlers.basic import start_router
+from core.handlers.check_regions import check_regions_router
 from core.settings import settings
 import requests
 
@@ -36,7 +37,9 @@ async def start():
 
     dp.startup.register(start_bot)
     dp.shutdown.register(stop_bot)
-    dp.message.register(get_start)
+
+    dp.include_router(start_router)
+    dp.include_router(check_regions_router)
 
     try:
         await bot.delete_webhook(drop_pending_updates=True)
