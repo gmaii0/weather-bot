@@ -1,5 +1,5 @@
 import httpx
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, Message
 from aiogram import Router, Bot, F
 import datetime
 from core.keyboards.inline import inline_regions_list_keyboard
@@ -49,7 +49,7 @@ def convert_timestamp_to_time(timestamp, timezone_offset):
 async def get_weather(callback_query: CallbackQuery):
     await bot.answer_callback_query(callback_query.id)
     city = callback_query.data
-    api_url = f"{settings.api_url.weather_url}{city}&appid={settings.api_url.openweather_api_token}&units=metric"
+    api_url = f"{settings.api_url.weather_url}q={city}&appid={settings.api_url.openweather_api_token}&units=metric"
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(api_url)
@@ -61,6 +61,11 @@ async def get_weather(callback_query: CallbackQuery):
     except Exception as e:
         await  callback_query.message.reply(f"Произошла ошибка: {str(e)}")
 
+
+
+@weather_router.message(F.text =="Hududni tanlash")
+async def get_menu(message: Message):
+    await message.answer(text='Hududni tanlang',reply_markup=inline_regions_list_keyboard)
 
 @weather_router.callback_query(F.data.in_(
     [
