@@ -30,13 +30,13 @@ def get_wind_direction(degrees):
 
 
 code_to_smile = {
-    "Clear": "Ясно \U00002600",
-    "Clouds": "Облачно \U00002601",
-    "Rain": "Дождь \U00002614",
-    "Drizzle": "Дождь \u00002614",
-    "Thunderstorm": "Гроза \U000026A1",
-    "Snow": "Снег \u0001F328",
-    "Mist": "Туман \U0001F32B"}
+    "Clear": "Ochiq havo \U00002600",
+    "Clouds": "Bulutli \U00002601",
+    "Rain": "Yomg'ir \U00002614",
+    "Drizzle": "Yomg'ir \u00002614",
+    "Thunderstorm": "Momaqaldiroq \U000026A1",
+    "Snow": "Qor \u0001F328",
+    "Mist": "Tuman \U0001F32B"}
 
 
 # Функция для преобразования timestamp в читаемый формат времени
@@ -93,19 +93,19 @@ async def process_weather(callback_query: CallbackQuery):
         clouds_percentage = weather_data["clouds"]["all"]
         sunrise_timestamp = weather_data["sys"]["sunrise"]
         sunset_timestamp = weather_data["sys"]["sunset"]
-        await callback_query.message.edit_text(
-            f"**🌆 Погода в {city_name}:**\n"
+        await callback_query.message.answer(
+            f"**🌆 Shahar nomi: {city_name}:**\n"
             f"**{current_date}:**\n"
-            f"* Температура: {temperature:.1f}°C {wd}\n"
-            f"*(ощущается как {feels_like:.1f}°C)\n"
-            f"* Влажность: {humidity}%\n"
-            f"* Ветер: {wind_speed:.1f} м/с, {wind_direction}\n"
-            f"* Давление: {pressure} гПа\n"
-            f"* Видимость: {visibility} м\n"
-            f"**Дополнительно:**\n"
-            f"* Облачность: {clouds_percentage}%\n"
-            f"* Восход солнца: {convert_timestamp_to_time(sunrise_timestamp, 18000)}\n"
-            f"* Заход солнца: {convert_timestamp_to_time(sunset_timestamp, 18000)}\n"
+            f"* Harorat: {temperature:.1f}°C {wd}\n"
+            f"*(His qilinadigan harorat: {feels_like:.1f}°C)\n"
+            f"* Namligi: {humidity}%\n"
+            f"* Shamol tezligi: {wind_speed:.1f} м/с, {wind_direction}\n"
+            f"* Bosim: {pressure} гПа\n"
+            f"* Ko'rinish: {visibility} м\n"
+            f"**Qo'shimcha ma'lumotlar:**\n"
+            f"* Bulutli: {clouds_percentage}%\n"
+            f"* Quyosh chiqishi: {convert_timestamp_to_time(sunrise_timestamp, 18000)}\n"
+            f"* Quyosh botishi: {convert_timestamp_to_time(sunset_timestamp, 18000)}\n"
             ,
             reply_markup=inline_regions_list_keyboard
         )
