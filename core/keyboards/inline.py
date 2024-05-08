@@ -24,3 +24,13 @@ builder.row(
 
 
 inline_regions_list_keyboard = builder.as_markup()
+
+answermenu = InlineKeyboardBuilder()
+
+answermenu.row(
+    InlineKeyboardButton(text="⬅️ Orqaga", callback_data='prev'),
+    InlineKeyboardButton(text="Oldinga ➡️", callback_data='next'),
+    width=1
+)
+
+inline_answer_menu = answermenu.as_markup()

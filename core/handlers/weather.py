@@ -2,7 +2,7 @@ import httpx
 from aiogram.types import CallbackQuery, Message
 from aiogram import Router, Bot, F
 import datetime
-from core.keyboards.inline import inline_regions_list_keyboard
+from core.keyboards.inline import inline_regions_list_keyboard, inline_answer_menu
 from core.settings import settings
 import pytz
 
@@ -20,11 +20,11 @@ def get_wind_direction(degrees):
     """Возвращает направление ветра по сторонам света на основе угла в градусах."""
 
     directions = [
-        "С (Север)", "ССВ", "СВ", "ВСВ",
-        "В (Восток)", "ВЮВ", "ЮВ", "ЮЮВ",
-        "Ю (Юг)", "ЮЗ", "ЗЮЗ", "З (Запад)",
-        "ЗСЗ", "СЗ", "ССЗ", "С (Север)"
-    ]
+    "Shimol", "Shimoliy-sharqiy", "Sharqiy", "Shimoliy-sharqiy",
+    "Sharq", "Sharqiy-janubiy", "Janubiy-sharqiy", "Janubiy-janubiy-sharqiy",
+    "Janubiy", "Janubiy-g'arbiy", "G'arbiy-janubiy", "G'arb",
+    "G'arbiy-shimoliy", "Shimoliy-g'arbiy", "Shimoliy-shimoliy-g'arbiy", "Shimol"
+]
     index = int((degrees + 11.25) / 22.5)
     return directions[index % 16]
 
@@ -93,13 +93,13 @@ async def process_weather(callback_query: CallbackQuery):
         clouds_percentage = weather_data["clouds"]["all"]
         sunrise_timestamp = weather_data["sys"]["sunrise"]
         sunset_timestamp = weather_data["sys"]["sunset"]
-        await callback_query.message.answer(
+        await callback_query.message.edit_text(
             f"**🌆 Shahar nomi: {city_name}:**\n"
             f"**{current_date}:**\n"
             f"* Harorat: {temperature:.1f}°C {wd}\n"
             f"*(His qilinadigan harorat: {feels_like:.1f}°C)\n"
             f"* Namligi: {humidity}%\n"
-            f"* Shamol tezligi: {wind_speed:.1f} м/с, {wind_direction}\n"
+            f"* Shamol tezligi: {wind_speed:.1f} м/с, 🧭 {wind_direction}\n"
             f"* Bosim: {pressure} гПа\n"
             f"* Ko'rinish: {visibility} м\n"
             f"**Qo'shimcha ma'lumotlar:**\n"
@@ -107,7 +107,7 @@ async def process_weather(callback_query: CallbackQuery):
             f"* Quyosh chiqishi: {convert_timestamp_to_time(sunrise_timestamp, 18000)}\n"
             f"* Quyosh botishi: {convert_timestamp_to_time(sunset_timestamp, 18000)}\n"
             ,
-            reply_markup=inline_regions_list_keyboard
+            reply_markup=inline_answer_menu
         )
     else:
         pass
