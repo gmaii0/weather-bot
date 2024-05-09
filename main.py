@@ -5,6 +5,7 @@ import betterlogging as bl
 import logging
 from aiogram.enums import ParseMode
 from core.handlers.basic import basic_router
+from core.handlers.location import loc_router
 from core.handlers.weather import weather_router
 from core.settings import settings
 
@@ -30,6 +31,7 @@ async def start():
     dp.shutdown.register(stop_bot)
 
     dp.include_router(weather_router)
+    dp.include_router(loc_router)
     dp.include_router(basic_router)
 
 
