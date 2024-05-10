@@ -14,9 +14,9 @@ builder.row(
     InlineKeyboardButton(text="NAMANGAN", callback_data='namangan'),
     InlineKeyboardButton(text="SAMARQAND", callback_data='samarkand'),
     InlineKeyboardButton(text="SURXONDARYO", callback_data='termez'),
-    InlineKeyboardButton(text="SIRDARYO", callback_data='gulistan'),
-    InlineKeyboardButton(text="TOSHKENT", callback_data='tashkent'),
-    InlineKeyboardButton(text="FARG'ONA", callback_data='ferghana'),
+    InlineKeyboardButton(text="SIRDARYO", callback_data='Sirdaryo'),
+    InlineKeyboardButton(text="TOSHKENT", callback_data='Toshkent'),
+    InlineKeyboardButton(text="FARG'ONA", callback_data="Farg'ona"),
     InlineKeyboardButton(text="XORAZM", callback_data='urgench'),
     InlineKeyboardButton(text="Qoraqalpog'iston", callback_data='nukus'),
     width=2

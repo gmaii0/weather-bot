@@ -71,7 +71,7 @@ async def get_menu(message: Message):
     [
         'andijan', 'bukhara', 'jizzakh', 'qarshi',
         'navoi', 'namangan', 'samarkand', 'termez',
-        'gulistan', 'tashkent', 'ferghana', 'urgench', 'nukus'
+        'Sirdaryo', 'Toshkent', "Farg'ona", 'urgench', 'nukus'
     ]))
 async def process_weather(callback_query: CallbackQuery):
     weather_data = await get_weather(callback_query)
@@ -99,7 +99,8 @@ async def process_weather(callback_query: CallbackQuery):
             f"* Harorat: {temperature:.1f}°C {wd}\n"
             f"*(His qilinadigan harorat: {feels_like:.1f}°C)\n"
             f"* Namligi: {humidity}%\n"
-            f"* Shamol tezligi: {wind_speed:.1f} м/с, 🧭 {wind_direction}\n"
+            f"* Shamol tezligi: {wind_speed:.1f} м/с\n" 
+            f"* Shamol yo'nalishi: 🧭 {wind_direction}\n"
             f"* Bosim: {pressure} гПа\n"
             f"* Ko'rinish: {visibility} м\n"
             f"**Qo'shimcha ma'lumotlar:**\n"
