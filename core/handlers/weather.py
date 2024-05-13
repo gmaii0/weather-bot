@@ -67,6 +67,11 @@ async def get_weather(callback_query: CallbackQuery):
 async def get_menu(message: Message):
     await message.answer(text='Hududni tanlang',reply_markup=inline_regions_list_keyboard)
 
+@weather_router.callback_query(F.data == "prev")
+async def get_back(callback_query: CallbackQuery):
+    await callback_query.answer()
+    await callback_query.message.edit_text(text='Hududni tanlang',reply_markup=inline_regions_list_keyboard)
+
 @weather_router.callback_query(F.data.in_(
     [
         'andijan', 'bukhara', 'jizzakh', 'qarshi',

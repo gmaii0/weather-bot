@@ -29,7 +29,6 @@ answermenu = InlineKeyboardBuilder()
 
 answermenu.row(
     InlineKeyboardButton(text="⬅️ Orqaga", callback_data='prev'),
-    InlineKeyboardButton(text="Oldinga ➡️", callback_data='next'),
     width=1
 )
 
