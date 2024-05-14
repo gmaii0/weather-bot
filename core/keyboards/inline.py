@@ -1,35 +1,32 @@
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+def create_inline_keyboard(buttons, width=2):
+    builder = InlineKeyboardBuilder()
+    for text, callback_data in buttons:
+        builder.add(InlineKeyboardButton(text=text, callback_data=callback_data))
+    builder.adjust(width)
+    return builder.as_markup()
 
-builder = InlineKeyboardBuilder()
+region_buttons = [
+    ("ANDIJON", 'andijan'),
+    ("BUXORO", 'bukhara'),
+    ("JIZZAX", 'jizzakh'),
+    ("QASHQADARYO", 'qarshi'),
+    ("NAVOIY", 'navoi'),
+    ("NAMANGAN", 'namangan'),
+    ("SAMARQAND", 'samarkand'),
+    ("SURXONDARYO", 'termez'),
+    ("SIRDARYO", 'Sirdaryo'),
+    ("TOSHKENT", 'Toshkent'),
+    ("FARG'ONA", "Farg'ona"),
+    ("XORAZM", 'urgench'),
+    ("Qoraqalpog'iston", 'nukus')
+]
 
+navigation_buttons = [
+    ("⬅️ Orqaga", 'prev')
+]
 
-builder.row(
-    InlineKeyboardButton(text="ANDIJON", callback_data='andijan'),
-    InlineKeyboardButton(text="BUXORO", callback_data='bukhara'),
-    InlineKeyboardButton(text="JIZZAX", callback_data='jizzakh'),
-    InlineKeyboardButton(text="QASHQADARYO", callback_data='qarshi'),
-    InlineKeyboardButton(text="NAVOIY", callback_data='navoi'),
-    InlineKeyboardButton(text="NAMANGAN", callback_data='namangan'),
-    InlineKeyboardButton(text="SAMARQAND", callback_data='samarkand'),
-    InlineKeyboardButton(text="SURXONDARYO", callback_data='termez'),
-    InlineKeyboardButton(text="SIRDARYO", callback_data='Sirdaryo'),
-    InlineKeyboardButton(text="TOSHKENT", callback_data='Toshkent'),
-    InlineKeyboardButton(text="FARG'ONA", callback_data="Farg'ona"),
-    InlineKeyboardButton(text="XORAZM", callback_data='urgench'),
-    InlineKeyboardButton(text="Qoraqalpog'iston", callback_data='nukus'),
-    width=2
-)
-
-
-inline_regions_list_keyboard = builder.as_markup()
-
-answermenu = InlineKeyboardBuilder()
-
-answermenu.row(
-    InlineKeyboardButton(text="⬅️ Orqaga", callback_data='prev'),
-    width=1
-)
-
-inline_answer_menu = answermenu.as_markup()
+inline_regions_list_keyboard = create_inline_keyboard(region_buttons)
+inline_answer_menu = create_inline_keyboard(navigation_buttons, width=1)
