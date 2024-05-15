@@ -89,15 +89,28 @@ async def get_air_quality(lat, lon):
 
 def format_air_quality_report(air_quality_data):
     aqi = air_quality_data['list'][0]['main']['aqi']
+    components = air_quality_data['list'][0]['components']
     air_quality_levels = {
-        1: "Good \U0001F7E2",
-        2: "Fair \U0001F7E1",
-        3: "Moderate \U0001F7E0",
-        4: "Poor \U0001F534",
-        5: "Very Poor \U0001F7E4"
+        1: ("Yaxshi", "🟢"),
+        2: ("Qoniqarli", "🟡"),
+        3: ("O'rtacha", "🟠"),
+        4: ("Yomon", "🔴"),
+        5: ("Juda yomon", "🟣")
     }
-    air_quality_description = air_quality_levels.get(aqi, "Unknown")
-    return f"Air Quality Index (AQI): {air_quality_description} ({aqi})"
+    air_quality_description, emoji = air_quality_levels.get(aqi, ("Nomalum", "⚪️"))
+
+    report = (
+        f"**Air Quality Index (AQI): {emoji} {air_quality_description} ({aqi})**\n\n"
+        f"* **CO (Carbon monoxide):** {components['co']} µg/m³\n"
+        f"* **NO (Nitrogen monoxide):** {components['no']} µg/m³\n"
+        f"* **NO₂ (Nitrogen dioxide):** {components['no2']} µg/m³\n"
+        f"* **O₃ (Ozone):** {components['o3']} µg/m³\n"
+        f"* **SO₂ (Sulphur dioxide):** {components['so2']} µg/m³\n"
+        f"* **PM2.5:** {components['pm2_5']} µg/m³\n"
+        f"* **PM10:** {components['pm10']} µg/m³\n"
+        f"* **NH₃ (Ammonia):** {components['nh3']} µg/m³\n"
+    )
+    return report
 
 
 @weather_router.message(F.text == "Hududni tanlash")
@@ -116,7 +129,6 @@ async def process_weather(callback_query: CallbackQuery, state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
     _, lat, lon = callback_query.data.split('_')
 
-    # Сохраняем координаты в контексте FSM
     await state.update_data(latitude=lat, longitude=lon)
 
     weather_data = await get_weather(lat, lon)
@@ -163,7 +175,6 @@ async def process_weather(callback_query: CallbackQuery, state: FSMContext):
 async def process_air_quality(callback_query: CallbackQuery, state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
 
-    # Получаем сохраненные данные локации из контекста FSM
     data = await state.get_data()
     latitude = data.get("latitude")
     longitude = data.get("longitude")
