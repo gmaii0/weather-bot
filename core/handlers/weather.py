@@ -46,8 +46,8 @@ def convert_timestamp_to_time(timestamp, timezone_offset=18000):
     return dt.strftime("%H:%M")
 
 
-async def get_weather(city):
-    api_url = f"{settings.api_url.weather_url}q={city}&appid={settings.api_url.openweather_api_token}&units=metric"
+async def get_weather(lat, lon):
+    api_url = f"{settings.api_url.weather_url}lat={lat}&lon={lon}&appid={settings.api_url.openweather_api_token}&units=metric"
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(api_url)
@@ -72,16 +72,11 @@ async def get_back(callback_query: CallbackQuery):
     await callback_query.message.edit_text(text='Hududni tanlang', reply_markup=inline_regions_list_keyboard)
 
 
-@weather_router.callback_query(F.data.in_(
-    [
-        'andijan', 'bukhara', 'jizzakh', 'qarshi',
-        'navoi', 'namangan', 'samarkand', 'termez',
-        'Sirdaryo', 'Toshkent', "Farg'ona", 'urgench', 'nukus'
-    ]))
+@weather_router.callback_query(F.data.startswith('loc_'))
 async def process_weather(callback_query: CallbackQuery):
     await bot.answer_callback_query(callback_query.id)
-    city = callback_query.data
-    weather_data = await get_weather(city)
+    _, lat, lon = callback_query.data.split('_')
+    weather_data = await get_weather(lat, lon)
     if weather_data:
         current_date = get_current_date()
         city_name = weather_data["name"]
