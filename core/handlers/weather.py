@@ -18,18 +18,16 @@ storage = MemoryStorage()
 dp = Dispatcher(storage=storage)
 weather_router = Router()
 
-
 class WeatherState(StatesGroup):
     location = State()
-
 
 code_to_smile = {
     "Clear": "Ochiq havo \U00002600",
     "Clouds": "Bulutli \U00002601",
     "Rain": "Yomg'ir \U00002614",
-    "Drizzle": "Yomg'ir \U00002614",
+    "Drizzle": "Yomg'ir \u00002614",
     "Thunderstorm": "Momaqaldiroq \U000026A1",
-    "Snow": "Qor \U0001F328",
+    "Snow": "Qor \u0001F328",
     "Mist": "Tuman \U0001F32B"
 }
 
@@ -40,22 +38,18 @@ directions = [
     "G'arbiy-shimoliy", "Shimoliy-g'arbiy", "Shimoliy-shimoliy-g'arbiy", "Shimol"
 ]
 
-
 def get_current_date():
     now = datetime.datetime.now()
     return now.strftime("%Y-%m-%d %H:%M")
-
 
 def get_wind_direction(degrees):
     index = int((degrees + 11.25) / 22.5)
     return directions[index % 16]
 
-
 def convert_timestamp_to_time(timestamp, timezone_offset=18000):
     timezone = pytz.timezone("Asia/Tashkent")
     dt = datetime.datetime.fromtimestamp(timestamp, tz=timezone)
     return dt.strftime("%H:%M")
-
 
 async def get_weather(lat, lon):
     api_url = f"http://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={settings.api_url.openweather_api_token}&units=metric"
@@ -71,7 +65,6 @@ async def get_weather(lat, lon):
         bl.error(f"An error occurred: {str(e)}")
         return None
 
-
 async def get_air_quality(lat, lon):
     api_url = f"http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid={settings.api_url.openweather_api_token}"
     try:
@@ -86,43 +79,57 @@ async def get_air_quality(lat, lon):
         bl.error(f"An error occurred: {str(e)}")
         return None
 
-
 def format_air_quality_report(air_quality_data):
-    aqi = air_quality_data['list'][0]['main']['aqi']
-    components = air_quality_data['list'][0]['components']
-    air_quality_levels = {
+    coord = air_quality_data["coord"]
+    pollution_data = air_quality_data["list"][0]
+    aqi = pollution_data["main"]["aqi"]
+
+    aqi_level_info = {
         1: ("Yaxshi", "🟢"),
         2: ("Qoniqarli", "🟡"),
         3: ("O'rtacha", "🟠"),
         4: ("Yomon", "🔴"),
         5: ("Juda yomon", "🟣")
-    }
-    air_quality_description, emoji = air_quality_levels.get(aqi, ("Nomalum", "⚪️"))
+    }.get(aqi, ("Noma'lum", "⚫️"))
+
+    components = pollution_data["components"]
+
+    timestamp = datetime.datetime.fromtimestamp(
+        pollution_data["dt"], tz=pytz.timezone("Asia/Tashkent")
+    )
+    formatted_time = timestamp.strftime("%Y-%m-%d %H:%M")
 
     report = (
-        f"**Air Quality Index (AQI): {emoji} {air_quality_description} ({aqi})**\n\n"
-        f"* **CO (Carbon monoxide):** {components['co']} µg/m³\n"
-        f"* **NO (Nitrogen monoxide):** {components['no']} µg/m³\n"
-        f"* **NO₂ (Nitrogen dioxide):** {components['no2']} µg/m³\n"
-        f"* **O₃ (Ozone):** {components['o3']} µg/m³\n"
-        f"* **SO₂ (Sulphur dioxide):** {components['so2']} µg/m³\n"
-        f"* **PM2.5:** {components['pm2_5']} µg/m³\n"
-        f"* **PM10:** {components['pm10']} µg/m³\n"
-        f"* **NH₃ (Ammonia):** {components['nh3']} µg/m³\n"
+        f"🍃 **Havo sifati indeksi:**\n\n"
+        f"📆 **Sana va vaqt:** {formatted_time} (UZT)\n"
+        f"🌍 **Joylashuv:** {coord['lat']}°N, {coord['lon']}°E\n\n"
+        f"{aqi_level_info[1]} **AQI:** {aqi} ({aqi_level_info[0]})\n\n"  # Use emoji and text from aqi_level
+        f"📊 **Havoning asosiy ifloslantiruvchi moddalari:**\n\n"
     )
-    return report
 
+    for pollutant, value in components.items():
+        pollutant_name = {
+            "co": "CO (Uglarod oksidi)",
+            "no": "NO (Azot oksidi)",
+            "no2": "NO₂ (Azot dioksidi)",
+            "o3": "O₃ (Ozon)",
+            "so2": "SO₂ (Oltingugurt dioksidi)",
+            "pm2_5": "PM2.5",
+            "pm10": "PM10",
+            "nh3": "NH₃ (Ammiak)"
+        }.get(pollutant, pollutant.upper())  # Use uppercase if name not found
+        report += f"* **{pollutant_name}:** {value} мкг/м³\n"
+
+    return report
 
 @weather_router.message(F.text == "Hududni tanlash")
 async def get_menu(message: Message):
     await message.answer(text='Hududni tanlang', reply_markup=inline_regions_list_keyboard)
 
-
 @weather_router.callback_query(F.data == "prev")
 async def get_back(callback_query: CallbackQuery):
     await callback_query.answer()
     await callback_query.message.edit_text(text='Hududni tanlang', reply_markup=inline_regions_list_keyboard)
-
 
 @weather_router.callback_query(F.data.startswith('loc_'))
 async def process_weather(callback_query: CallbackQuery, state: FSMContext):
@@ -169,6 +176,7 @@ async def process_weather(callback_query: CallbackQuery, state: FSMContext):
         await callback_query.message.edit_text(weather_report, reply_markup=inline_answer_menu)
     else:
         await callback_query.message.reply("Ma'lumotlarni olishda xatolik yuz berdi, qayta urinib ko'ring.")
+
 
 
 @weather_router.callback_query(F.data == "index")
