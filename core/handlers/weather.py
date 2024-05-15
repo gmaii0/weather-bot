@@ -122,7 +122,7 @@ def format_air_quality_report(air_quality_data):
 
     return report
 
-@weather_router.message(F.text == "Hududni tanlash")
+@weather_router.message(F.text == "Hududni tanlash 🇺🇿")
 async def get_menu(message: Message):
     await message.answer(text='Hududni tanlang', reply_markup=inline_regions_list_keyboard)
 

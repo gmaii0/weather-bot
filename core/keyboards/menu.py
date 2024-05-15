@@ -3,10 +3,10 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 start_menu = ReplyKeyboardMarkup(
     keyboard=[
         [
-            KeyboardButton(text='Hududni tanlash')
+            KeyboardButton(text='Hududni tanlash 🇺🇿')
         ],
         [
-            KeyboardButton(text='📍 Lokatiya orqali', request_location=True)
+            KeyboardButton(text='📍 Lokatiya orqali 🌎', request_location=True)
         ],
     ],
     resize_keyboard=True,
