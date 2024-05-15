@@ -2,23 +2,34 @@ import logging
 import datetime
 import pytz
 import httpx
-from aiogram import Bot, Router, F
+from aiogram import Bot, Dispatcher, Router, F
 from aiogram.types import CallbackQuery, Message
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import StatesGroup, State
+from aiogram.fsm.storage.memory import MemoryStorage
 from core.keyboards.inline import inline_regions_list_keyboard, inline_answer_menu
 from core.settings import settings
 import betterlogging as bl
+
 bl.basic_colorized_config(level=logging.INFO)
 
 bot = Bot(token=settings.bots.bot_token, parse_mode='HTML')
+storage = MemoryStorage()
+dp = Dispatcher(storage=storage)
 weather_router = Router()
+
+
+class WeatherState(StatesGroup):
+    location = State()
+
 
 code_to_smile = {
     "Clear": "Ochiq havo \U00002600",
     "Clouds": "Bulutli \U00002601",
     "Rain": "Yomg'ir \U00002614",
-    "Drizzle": "Yomg'ir \u00002614",
+    "Drizzle": "Yomg'ir \U00002614",
     "Thunderstorm": "Momaqaldiroq \U000026A1",
-    "Snow": "Qor \u0001F328",
+    "Snow": "Qor \U0001F328",
     "Mist": "Tuman \U0001F32B"
 }
 
@@ -47,7 +58,7 @@ def convert_timestamp_to_time(timestamp, timezone_offset=18000):
 
 
 async def get_weather(lat, lon):
-    api_url = f"{settings.api_url.weather_url}lat={lat}&lon={lon}&appid={settings.api_url.openweather_api_token}&units=metric"
+    api_url = f"http://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={settings.api_url.openweather_api_token}&units=metric"
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(api_url)
@@ -59,6 +70,34 @@ async def get_weather(lat, lon):
     except Exception as e:
         bl.error(f"An error occurred: {str(e)}")
         return None
+
+
+async def get_air_quality(lat, lon):
+    api_url = f"http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid={settings.api_url.openweather_api_token}"
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(api_url)
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as e:
+        bl.error(f"HTTP error: {e.response.status_code}")
+        return None
+    except Exception as e:
+        bl.error(f"An error occurred: {str(e)}")
+        return None
+
+
+def format_air_quality_report(air_quality_data):
+    aqi = air_quality_data['list'][0]['main']['aqi']
+    air_quality_levels = {
+        1: "Good \U0001F7E2",
+        2: "Fair \U0001F7E1",
+        3: "Moderate \U0001F7E0",
+        4: "Poor \U0001F534",
+        5: "Very Poor \U0001F7E4"
+    }
+    air_quality_description = air_quality_levels.get(aqi, "Unknown")
+    return f"Air Quality Index (AQI): {air_quality_description} ({aqi})"
 
 
 @weather_router.message(F.text == "Hududni tanlash")
@@ -73,25 +112,29 @@ async def get_back(callback_query: CallbackQuery):
 
 
 @weather_router.callback_query(F.data.startswith('loc_'))
-async def process_weather(callback_query: CallbackQuery):
+async def process_weather(callback_query: CallbackQuery, state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
     _, lat, lon = callback_query.data.split('_')
+
+    # Сохраняем координаты в контексте FSM
+    await state.update_data(latitude=lat, longitude=lon)
+
     weather_data = await get_weather(lat, lon)
     if weather_data:
         current_date = get_current_date()
-        city_name = weather_data["name"]
-        weather_description = weather_data["weather"][0]["main"]
+        city_name = weather_data["city"]["name"]
+        weather_description = weather_data["list"][0]["weather"][0]["main"]
         wd = code_to_smile.get(weather_description, "nomalum")
-        temperature = weather_data["main"]["temp"]
-        feels_like = weather_data["main"]["feels_like"]
-        humidity = weather_data["main"]["humidity"]
-        wind_speed = weather_data["wind"]["speed"]
-        wind_direction = get_wind_direction(weather_data["wind"]["deg"])
-        pressure = weather_data["main"]["pressure"]
-        visibility = weather_data["visibility"]
-        clouds_percentage = weather_data["clouds"]["all"]
-        sunrise_timestamp = weather_data["sys"]["sunrise"]
-        sunset_timestamp = weather_data["sys"]["sunset"]
+        temperature = weather_data["list"][0]["main"]["temp"]
+        feels_like = weather_data["list"][0]["main"]["feels_like"]
+        humidity = weather_data["list"][0]["main"]["humidity"]
+        wind_speed = weather_data["list"][0]["wind"]["speed"]
+        wind_direction = get_wind_direction(weather_data["list"][0]["wind"]["deg"])
+        pressure = weather_data["list"][0]["main"]["pressure"]
+        visibility = weather_data["list"][0]["visibility"]
+        clouds_percentage = weather_data["list"][0]["clouds"]["all"]
+        sunrise_timestamp = weather_data["city"]["sunrise"]
+        sunset_timestamp = weather_data["city"]["sunset"]
         sunrise_time = convert_timestamp_to_time(sunrise_timestamp)
         sunset_time = convert_timestamp_to_time(sunset_timestamp)
 
@@ -114,3 +157,23 @@ async def process_weather(callback_query: CallbackQuery):
         await callback_query.message.edit_text(weather_report, reply_markup=inline_answer_menu)
     else:
         await callback_query.message.reply("Ma'lumotlarni olishda xatolik yuz berdi, qayta urinib ko'ring.")
+
+
+@weather_router.callback_query(F.data == "index")
+async def process_air_quality(callback_query: CallbackQuery, state: FSMContext):
+    await bot.answer_callback_query(callback_query.id)
+
+    # Получаем сохраненные данные локации из контекста FSM
+    data = await state.get_data()
+    latitude = data.get("latitude")
+    longitude = data.get("longitude")
+
+    if latitude and longitude:
+        air_quality_data = await get_air_quality(latitude, longitude)
+        if air_quality_data:
+            air_quality_report = format_air_quality_report(air_quality_data)
+            await callback_query.message.edit_text(air_quality_report, reply_markup=inline_answer_menu)
+        else:
+            await callback_query.message.reply("Ma'lumotlarni olishda xatolik yuz berdi, qayta urinib ko'ring.")
+    else:
+        await callback_query.message.reply("Локация не найдена. Пожалуйста, выберите регион снова.")

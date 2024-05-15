@@ -25,6 +25,7 @@ region_buttons = [
 ]
 
 navigation_buttons = [
+    ("🍃 Havo sifati indeksi", 'index'),
     ("⬅️ Orqaga", 'prev')
 ]
 
