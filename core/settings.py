@@ -7,6 +7,7 @@ class Bots:
     bot_token: str
     admin_id: int
 
+
 @dataclass
 class ApiUrls:
     openweather_api_token: str

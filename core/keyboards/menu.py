@@ -6,7 +6,7 @@ start_menu = ReplyKeyboardMarkup(
             KeyboardButton(text='Hududni tanlash 🇺🇿')
         ],
         [
-            KeyboardButton(text='📍 Lokatiya orqali 🌎', request_location=True)
+            KeyboardButton(text='📍 Lokatsiya orqali 🌎', request_location=True)
         ],
     ],
     resize_keyboard=True,

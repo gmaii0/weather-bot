@@ -53,7 +53,7 @@ def convert_timestamp_to_time(timestamp, timezone_offset=18000):
     return dt.strftime("%H:%M")
 
 async def get_weather(lat, lon):
-    api_url = f"http://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={settings.api_url.openweather_api_token}&units=metric"
+    api_url = f"http://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={settings.api_url.openweather_api_token}&units=metric"
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(api_url)
@@ -142,19 +142,19 @@ async def process_weather(callback_query: CallbackQuery, state: FSMContext):
     weather_data = await get_weather(lat, lon)
     if weather_data:
         current_date = get_current_date()
-        city_name = weather_data["city"]["name"]
-        weather_description = weather_data["list"][0]["weather"][0]["main"]
+        city_name = weather_data["name"]  # Corrected to get city name from the correct field
+        weather_description = weather_data["weather"][0]["main"]
         wd = code_to_smile.get(weather_description, "nomalum")
-        temperature = weather_data["list"][0]["main"]["temp"]
-        feels_like = weather_data["list"][0]["main"]["feels_like"]
-        humidity = weather_data["list"][0]["main"]["humidity"]
-        wind_speed = weather_data["list"][0]["wind"]["speed"]
-        wind_direction = get_wind_direction(weather_data["list"][0]["wind"]["deg"])
-        pressure = weather_data["list"][0]["main"]["pressure"]
-        visibility = weather_data["list"][0]["visibility"]
-        clouds_percentage = weather_data["list"][0]["clouds"]["all"]
-        sunrise_timestamp = weather_data["city"]["sunrise"]
-        sunset_timestamp = weather_data["city"]["sunset"]
+        temperature = weather_data["main"]["temp"]
+        feels_like = weather_data["main"]["feels_like"]
+        humidity = weather_data["main"]["humidity"]
+        wind_speed = weather_data["wind"]["speed"]
+        wind_direction = get_wind_direction(weather_data["wind"]["deg"])
+        pressure = weather_data["main"]["pressure"]
+        visibility = weather_data["visibility"]
+        clouds_percentage = weather_data["clouds"]["all"]
+        sunrise_timestamp = weather_data["sys"]["sunrise"]
+        sunset_timestamp = weather_data["sys"]["sunset"]
         sunrise_time = convert_timestamp_to_time(sunrise_timestamp)
         sunset_time = convert_timestamp_to_time(sunset_timestamp)
 

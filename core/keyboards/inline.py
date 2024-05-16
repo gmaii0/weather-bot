@@ -1,12 +1,14 @@
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+
 def create_inline_keyboard(buttons, width=2):
     builder = InlineKeyboardBuilder()
     for text, callback_data in buttons:
         builder.add(InlineKeyboardButton(text=text, callback_data=callback_data))
     builder.adjust(width)
     return builder.as_markup()
+
 
 region_buttons = [
     ("ANDIJON", 'loc_40.77_72.34'),

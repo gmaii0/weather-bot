@@ -3,11 +3,14 @@ from aiogram import Router, F
 from aiogram.types import Message
 from aiogram.enums import ContentType
 from aiogram.fsm.context import FSMContext
+
+from core.keyboards.inline import inline_answer_menu
 from core.keyboards.menu import start_menu
 from core.settings import settings
 from core.handlers.weather import get_current_date, convert_timestamp_to_time, code_to_smile, get_wind_direction
 
 loc_router = Router()
+
 
 async def fetch_weather_data(api_url: str):
     try:
@@ -20,9 +23,11 @@ async def fetch_weather_data(api_url: str):
     except Exception as e:
         return f"Произошла ошибка: {str(e)}"
 
+
 async def get_location_weather(latitude: float, longitude: float):
     api_url = f"{settings.api_url.weather_url}lat={latitude}&lon={longitude}&appid={settings.api_url.openweather_api_token}&units=metric"
     return await fetch_weather_data(api_url)
+
 
 def format_weather_report(weather_data, current_date):
     city_name = weather_data["name"]
@@ -56,6 +61,7 @@ def format_weather_report(weather_data, current_date):
         f"🌇 <b>Quyosh botishi:</b> <code>{sunset_time}</code>\n"
     )
 
+
 @loc_router.message(F.content_type == ContentType.LOCATION)
 async def process_location(message: Message, state: FSMContext):
     latitude = message.location.latitude
@@ -68,6 +74,6 @@ async def process_location(message: Message, state: FSMContext):
 
     if isinstance(weather_data, dict):
         weather_report = format_weather_report(weather_data, current_date)
-        await message.answer(weather_report, reply_markup=start_menu)
+        await message.answer(weather_report, reply_markup=inline_answer_menu)
     else:
         await message.reply(weather_data or "Ma'lumotlarni olishda xatolik yuz berdi, qayta urinib ko'ring.")
