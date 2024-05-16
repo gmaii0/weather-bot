@@ -30,4 +30,7 @@ navigation_buttons = [
 ]
 
 inline_regions_list_keyboard = create_inline_keyboard(region_buttons)
+
 inline_answer_menu = create_inline_keyboard(navigation_buttons, width=1)
+
+inline_back_button = create_inline_keyboard([("⬅️ Orqaga", 'prev')], width=1)

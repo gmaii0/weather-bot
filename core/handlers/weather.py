@@ -7,7 +7,8 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.storage.memory import MemoryStorage
-from core.keyboards.inline import inline_regions_list_keyboard, inline_answer_menu
+from core.keyboards.inline import inline_regions_list_keyboard, inline_answer_menu, \
+    inline_back_button
 from core.settings import settings
 import betterlogging as bl
 
@@ -100,25 +101,25 @@ def format_air_quality_report(air_quality_data):
     formatted_time = timestamp.strftime("%Y-%m-%d %H:%M")
 
     report = (
-        f"🍃 **Havo sifati indeksi:**\n\n"
-        f"📆 **Sana va vaqt:** {formatted_time} (UZT)\n"
-        f"🌍 **Joylashuv:** {coord['lat']}°N, {coord['lon']}°E\n\n"
-        f"{aqi_level_info[1]} **AQI:** {aqi} ({aqi_level_info[0]})\n\n"  # Use emoji and text from aqi_level
-        f"📊 **Havoning asosiy ifloslantiruvchi moddalari:**\n\n"
+        f"🍃 <b>Havo sifati indeksi</b>:\n\n"
+        f"📆 <b>Sana va vaqt</b>: <code>{formatted_time} (UZT)</code>\n"
+        f"🌍 <b>Joylashuv</b>: <code>{coord['lat']}°N, {coord['lon']}°E</code>\n\n"
+        f"{aqi_level_info[1]} <b>AQI</b>: <code>{aqi} ({aqi_level_info[0]})</code>\n\n"  # Use emoji and text from aqi_level
+        f"📊 <b>Havoning asosiy ifloslantiruvchi moddalari:</b>\n\n"
     )
 
     for pollutant, value in components.items():
         pollutant_name = {
-            "co": "CO (Uglarod oksidi)",
+            "co": "CO (Uglerod oksidi)",
             "no": "NO (Azot oksidi)",
             "no2": "NO₂ (Azot dioksidi)",
             "o3": "O₃ (Ozon)",
             "so2": "SO₂ (Oltingugurt dioksidi)",
-            "pm2_5": "PM2.5",
-            "pm10": "PM10",
+            "pm2_5": "PM2.5 (qattiq zarrachalar)",
+            "pm10": "PM10 (qattiq zarrachalar)",
             "nh3": "NH₃ (Ammiak)"
-        }.get(pollutant, pollutant.upper())  # Use uppercase if name not found
-        report += f"* **{pollutant_name}:** {value} мкг/м³\n"
+        }.get(pollutant, pollutant.upper())
+        report += f"* <b>{pollutant_name}</b>: <code>{value}  μg/m3</code>\n"
 
     return report
 
@@ -158,19 +159,18 @@ async def process_weather(callback_query: CallbackQuery, state: FSMContext):
         sunset_time = convert_timestamp_to_time(sunset_timestamp)
 
         weather_report = (
-            f"**🌆 Shahar nomi: {city_name}:**\n"
-            f"**{current_date}:**\n"
-            f"* Harorat: {temperature:.1f}°C {wd}\n"
-            f"*(His qilinadigan harorat: {feels_like:.1f}°C)\n"
-            f"* Namligi: {humidity}%\n"
-            f"* Shamol tezligi: {wind_speed:.1f} м/с\n"
-            f"* Shamol yo'nalishi: 🧭 {wind_direction}\n"
-            f"* Bosim: {pressure} гПа\n"
-            f"* Ko'rinish: {visibility} м\n"
-            f"**Qo'shimcha ma'lumotlar:**\n"
-            f"* Bulutli: {clouds_percentage}%\n"
-            f"* Quyosh chiqishi: {sunrise_time}\n"
-            f"* Quyosh botishi: {sunset_time}\n"
+            f"🌆 <b>Shahar nomi:</b> {city_name}:\n\n"
+            f"🗓 <b>Sana:</b><code>{current_date}</code>\n\n"
+            f"🌡️<b>Harorat:</b> <code>{temperature:.1f}°C</code> {wd}\n\n"
+            #f"   (His qilinadigan harorat: <code>{feels_like:.1f}°C)</code>\n\n"
+            f"💧 <b>Namligi:</b> <code>{humidity}%\n</code>"
+            f"💨 <b>Shamol tezligi:</b> <code>{wind_speed:.1f} м/с</code>\n"
+            f"🧭 <b>Shamol yo'nalishi:</b> <code>{wind_direction}</code>\n\n"
+            ##f"🔵 Bosim: <code>{pressure} гПа</code>\n"
+            #f"🌫 Ko'rinish: <code>{visibility} м</code>\n"
+            f"☁️ <b>Bulutli:</b> <code>{clouds_percentage}%</code>\n"
+            f"🌅 <b>Quyosh chiqishi:</b> <code>{sunrise_time}</code>\n"
+            f"🌇 <b>Quyosh botishi:</b> <code>{sunset_time}</code>\n"
         )
 
         await callback_query.message.edit_text(weather_report, reply_markup=inline_answer_menu)
@@ -191,7 +191,7 @@ async def process_air_quality(callback_query: CallbackQuery, state: FSMContext):
         air_quality_data = await get_air_quality(latitude, longitude)
         if air_quality_data:
             air_quality_report = format_air_quality_report(air_quality_data)
-            await callback_query.message.edit_text(air_quality_report, reply_markup=inline_answer_menu)
+            await callback_query.message.edit_text(air_quality_report, reply_markup=inline_back_button)
         else:
             await callback_query.message.reply("Ma'lumotlarni olishda xatolik yuz berdi, qayta urinib ko'ring.")
     else:
