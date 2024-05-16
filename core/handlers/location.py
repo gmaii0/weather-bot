@@ -2,6 +2,8 @@ import httpx
 from aiogram import Router, F
 from aiogram.types import Message
 from aiogram.enums import ContentType
+from aiogram.fsm.context import FSMContext
+from core.keyboards.menu import start_menu
 from core.settings import settings
 from core.handlers.weather import get_current_date, convert_timestamp_to_time, code_to_smile, get_wind_direction
 
@@ -40,31 +42,32 @@ def format_weather_report(weather_data, current_date):
     sunset_time = convert_timestamp_to_time(sunset_timestamp)
 
     return (
-        f"**🌆 Shahar nomi: {city_name}:**\n"
-        f"**{current_date}:**\n"
-        f"* Harorat: {temperature:.1f}°C {wd}\n"
-        f"*(His qilinadigan harorat: {feels_like:.1f}°C)\n"
-        f"* Namligi: {humidity}%\n"
-        f"* Shamol tezligi: {wind_speed:.1f} м/с\n"
-        f"* Shamol yo'nalishi: 🧭 {wind_direction}\n"
-        f"* Bosim: {pressure} гПа\n"
-        f"* Ko'rinish: {visibility} м\n"
-        f"**Qo'shimcha ma'lumotlar:**\n"
-        f"* Bulutli: {clouds_percentage}%\n"
-        f"* Quyosh chiqishi: {sunrise_time}\n"
-        f"* Quyosh botishi: {sunset_time}\n"
+        f"🌆 <b>Shahar nomi:</b> {city_name}:\n\n"
+        f"🗓 <b>Sana:</b><code>{current_date}</code>\n\n"
+        f"🌡️<b>Harorat:</b> <code>{temperature:.1f}°C</code> {wd}\n\n"
+        # f"   (His qilinadigan harorat: <code>{feels_like:.1f}°C)</code>\n\n"
+        f"💧 <b>Namligi:</b> <code>{humidity}%\n</code>"
+        f"💨 <b>Shamol tezligi:</b> <code>{wind_speed:.1f} м/с</code>\n"
+        f"🧭 <b>Shamol yo'nalishi:</b> <code>{wind_direction}</code>\n\n"
+        ##f"🔵 Bosim: <code>{pressure} гПа</code>\n"
+        # f"🌫 Ko'rinish: <code>{visibility} м</code>\n"
+        f"☁️ <b>Bulutli:</b> <code>{clouds_percentage}%</code>\n"
+        f"🌅 <b>Quyosh chiqishi:</b> <code>{sunrise_time}</code>\n"
+        f"🌇 <b>Quyosh botishi:</b> <code>{sunset_time}</code>\n"
     )
 
 @loc_router.message(F.content_type == ContentType.LOCATION)
-async def process_location(message: Message):
+async def process_location(message: Message, state: FSMContext):
     latitude = message.location.latitude
     longitude = message.location.longitude
+
+    await state.update_data(latitude=latitude, longitude=longitude)
 
     weather_data = await get_location_weather(latitude, longitude)
     current_date = get_current_date()
 
     if isinstance(weather_data, dict):
         weather_report = format_weather_report(weather_data, current_date)
-        await message.answer(weather_report)
+        await message.answer(weather_report, reply_markup=start_menu)
     else:
         await message.reply(weather_data or "Ma'lumotlarni olishda xatolik yuz berdi, qayta urinib ko'ring.")
